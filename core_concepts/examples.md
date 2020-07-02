@@ -89,3 +89,92 @@ kubectl describe pod nginx | grep val
 kubectl exec -it nginx -- env
 kubectl exec -it nginx -- /bin/bash -c 'echo $var'
 ```
+
+#### Create a job that displays "Hello from K8s!" to the console and then exits
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello
+spec:
+  template:
+    spec:
+      containers:
+      - name: hello
+        image: busybox
+        command:
+        - "/bin/sh"
+        - "-c"
+        - "echo Hello from K8s!"
+      restartPolicy: Never
+```
+
+#### Create a single pod using the image redis called redis with a label key of app and value of redis
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  containers:
+  - name: redis
+    image: redis
+```
+
+#### Create a deployment called websrv using the image nginx with 3 replicas.  Plan for the deployment to be scaled up and down and for the image to be altered.
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websrv
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+```
+
+##### Scale the deployment up to 5 replicas
+```bash
+kubectl scale deployment/websrv --replicas=5
+```
+
+##### Alter the image to use nginx:1.7.9
+```bash
+kubectl --record deployment/websrv set image deploy/websrv nginx=nginx:1.7.9
+```
+
+##### Scale the deployment down to 1 replica
+```bash
+kubectl scale deployment/websrv --replicas=1
+```
+
+##### Alter the image to go back to the one you previously used
+```bash
+kubectl rollout undo deployment/websrv
+```
+
+#### Create a pod called dolittle using the image k8s.gcr.io/pause:2.0.  Label the pod with a key-value pair of "doesnothing" set equal to "true"
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dolittle
+  labels:
+    doesnothing: "true"
+spec:
+  containers:
+  - name: dolittle
+    image: k8s.gcr.io/pause:2.0
+```
+
